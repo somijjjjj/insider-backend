@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "file:/D:/Program Files/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.firstproject.insider.user.mapper.UserMapper">
+
+    <!-- 사용자 등록 -->
+    <insert id="insertUser" parameterType="com.firstproject.insider.user.dto.request.UserSingUpRequest">
+        INSERT INTO user (
+            USER_ID, PASSWORD, NICKNAME, EMAIL, BIRTH_DATE, GENDER, AGREE_TERMS, AGREE_PRIVACY
+        ) VALUES (
+            #{userId}
+            , #{password}
+            , #{nickName}
+            , #{email}
+            , #{birthDate}
+            , #{gender}
+            , #{agreeTerms}
+            , #{agreePrivacy}
+        )
+    </insert>
+
+    <!-- 사용자 권한 등록 -->
+    <insert id="insertUserAuth">
+        INSERT INTO user_auth (
+        USER_ID, AUTH_ROLE
+        ) VALUES (
+        #{userId}
+        , #{role}
+        )
+    </insert>
+
+    <!-- 사용자 아이디 중복 확인 -->
+    <select id="checkUserId" resultType="int">
+        SELECT COUNT(1)
+        FROM user
+        WHERE USER_ID = #{userId}
+    </select>
+
+    <!-- 이메일 중복 확인 -->
+    <select id="checkEmail" resultType="int">
+        SELECT COUNT(1)
+        FROM user
+        WHERE EMAIL = #{email}
+    </select>
+
+
+	
+	 <select id="getUserProfile" resultType="com.firstproject.insider.user.dto.UserDTO">
+        SELECT id
+        	  , userId
+        	  , password
+        	  , nickName
+        	  , createTime
+        	  , isWithDraw
+        	  , status
+        FROM user
+        WHERE userId = #{id}
+    </select>
+
+
+    <update id="updateUserProfile" parameterType="com.firstproject.insider.user.dto.UserDTO">
+        UPDATE user
+        SET password=#{password},
+            nickName=#{nickName},
+            isWithDraw=#{isWithDraw},
+            status=#{status}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteUserProfile">
+        DELETE FROM user
+        WHERE userId = #{id}
+    </delete>
+
+
+
+    <select id="findByIdAndPassword" resultType="com.firstproject.insider.user.dto.UserDTO">
+        SELECT id
+              , userId
+              , passWord
+              , nickName
+              , createTime
+              , isWithDraw
+              , status
+        FROM user
+        WHERE userId = #{id}
+          AND passWord = #{password}
+          AND status != 'DELETE'
+    </select>
+
+
+
+    <update id="updatePassword" parameterType="com.firstproject.insider.user.dto.UserDTO">
+        UPDATE user
+        SET passWord = #{password}
+        WHERE userId = #{userId}
+    </update>
+    
+</mapper>
