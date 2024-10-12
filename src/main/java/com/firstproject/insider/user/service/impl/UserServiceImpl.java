@@ -1,6 +1,10 @@
 package com.firstproject.insider.user.service.impl;
 
+import com.firstproject.insider.system.exception.GlobalExceptionCode;
+import com.firstproject.insider.system.utils.EmailService;
+import com.firstproject.insider.system.utils.JwtUtil;
 import com.firstproject.insider.user.dto.UserDTO;
+import com.firstproject.insider.user.dto.request.UserLoginRequest;
 import com.firstproject.insider.user.dto.request.UserSingUpRequest;
 import com.firstproject.insider.user.dto.response.UserLoginErrorCode;
 import com.firstproject.insider.user.dto.response.UserSignUpErrorCode;
@@ -16,6 +20,9 @@ import com.firstproject.insider.system.utils.SHA256Util;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
+import java.util.UUID;
+
 @Log4j2
 @Service
 public class UserServiceImpl implements UserService {
@@ -23,31 +30,17 @@ public class UserServiceImpl implements UserService {
 	@Autowired
     private UserMapper userMapper;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    @Autowired
+    private EmailService emailService;
+
     public UserServiceImpl(UserMapper userMapper) {
         this.userMapper = userMapper;
     }
-    
-    @Override
-    public UserDTO getUserInfo(String userId) {
-        return userMapper.getUserProfile(userId);
-    }
 
     private static final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-
-    /**
-     * 비밀번호 암호화
-     */
-    public static String encodePassword(String rawPassword) {
-        return passwordEncoder.encode(rawPassword);
-    }
-
-    /**
-     * 비밀번호 검증
-     */
-    public static boolean matches(String rawPassword, String encodedPassword) {
-        return passwordEncoder.matches(rawPassword, encodedPassword);
-    }
-
 
     /**
      * 회원가입 요청 처리
@@ -85,55 +78,91 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-
-    @Override
-    public UserDTO login(String id, String password) {
-        String cryptoPassword = SHA256Util.encryptSHA256(password);
-        return userMapper.findByIdAndPassword(id, cryptoPassword);
-    }
-
-
-
-    @Override
-    public void updatePassword(String id, String beforePassword, String afterPassword) {
-        String cryptoPassword = SHA256Util.encryptSHA256(beforePassword);
-        UserDTO memberInfo = userMapper.findByIdAndPassword(id, cryptoPassword);
-
-        if (memberInfo != null) {
-            memberInfo.setPassword(SHA256Util.encryptSHA256(afterPassword));
-            int insertCount = userMapper.updatePassword(memberInfo);
-        } else {
-            log.error("updatePassword ERROR! {}", memberInfo);
-            throw new IllegalArgumentException("updatePassword ERROR! 비밀번호 변경 메서드를 확인해주세요\n" + "Params : " + memberInfo);
-        }
-    }
-
-    @Override
-    public void deleteId(String id, String passWord) throws Exception {
-        String cryptoPassword = SHA256Util.encryptSHA256(passWord);
-        UserDTO memberInfo = userMapper.findByIdAndPassword(id, cryptoPassword);
-
-        if (memberInfo != null) {
-            userMapper.deleteUserProfile(memberInfo.getUserId());
-        } else {
-            log.error("deleteId ERROR! {}", memberInfo);
-            throw new RuntimeException("deleteId ERROR! id 삭제 메서드를 확인해주세요\n" + "Params : " + memberInfo);
-        }
-    }
-
-
     /**
      * 사용자 아이디 중복 확인
      */
+    @Override
     public boolean isDuplicateUserId(String id) {
+        if(id.isEmpty() || id.isBlank()){
+            throw new BusinessException(GlobalExceptionCode.ARGUMENT_NOT_VALID);
+        }
         return userMapper.checkUserId(id) == 1;
     }
 
     /**
      * 사용자 이메일 중복 확인
      */
-    private boolean isDuplicateEmail(String email) {
+    @Override
+    public boolean isDuplicateEmail(String email) {
+        if(email.isEmpty() || email.isBlank()){
+            throw new BusinessException(GlobalExceptionCode.ARGUMENT_NOT_VALID);
+        }
         return userMapper.checkEmail(email) == 1;
     }
+
+    /**
+     * 계정 로그인 요청
+     */
+    @Transactional
+    @Override
+    public String login(UserLoginRequest requestBody) {
+        // 파라미터 값으로 유저 정보 조회
+        String encodedPassword = userMapper.selectLoginInfo(requestBody.getUserId());
+
+        if(encodedPassword == null){
+            throw new BusinessException(UserLoginErrorCode.USER_NOT_FOUND);
+        }
+        String rawPassword  = requestBody.getPassword();
+
+        // 비밀번호 검증
+        boolean isMatch = passwordEncoder.matches(rawPassword, encodedPassword);
+
+        if (isMatch) {
+            // JWT 생성
+            return jwtUtil.generateToken(requestBody.getUserId());
+        } else {
+            throw new BusinessException(UserLoginErrorCode.USER_NOT_FOUND);
+        }
+    }
+
+
+    /**
+     * 계정 아이디 찾기 요청
+     */
+    @Transactional
+    @Override
+    public String findIdByEmail(String email) {
+        return userMapper.selectUserIdByEmail(email);
+    }
+
+
+    /**
+     * 계정 비밀번호 초기화
+     */
+    @Transactional
+    @Override
+    public boolean resetPassword(String userId, String email) {
+        String storedEmail = userMapper.selectEmailByUserId(userId);
+        if (storedEmail != null && storedEmail.equals(email)) {
+            // 임시 비밀번호(또는 재설정 토큰) 생성
+            String tempPassword = generateTemporaryPassword();
+            //String encodedPassword = passwordEncoder.encode(tempPassword);
+            //userMapper.updateUserPassword(userId, encodedPassword);
+
+            // 임시 비밀번호 또는 재설정 링크가 포함된 이메일 전송
+            emailService.sendPasswordResetEmail(email, tempPassword);
+            return true;
+        }
+
+        return false; //사용자 ID 또는 이메일이 일치하지 않음
+    }
+
+    /**
+     * 임시 비밀번호 생성
+     */
+    private String generateTemporaryPassword() {
+        return UUID.randomUUID().toString().substring(0, 8);
+    }
+
 
 }

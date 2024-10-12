@@ -4,8 +4,8 @@ import static java.util.stream.Collectors.groupingBy;
 
 
 import com.firstproject.insider.common.annotation.ApiErrorCodeExample;
-import com.firstproject.insider.common.dto.ErrorReason;
-import com.firstproject.insider.common.dto.ErrorResponse;
+import com.firstproject.insider.common.dto.ErrorResponseDto;
+import com.firstproject.insider.common.response.ErrorResponse;
 import com.firstproject.insider.system.exception.BaseErrorCode;
 import com.firstproject.insider.system.exception.GlobalExceptionCode;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -17,9 +17,7 @@ import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
-import io.swagger.v3.oas.models.servers.Server;
 
-import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -95,12 +93,11 @@ public class SwaggerConfig {
                 // 해당 이넘에 선언된 에러코드들의 목록을 가져옵니다.
                 BaseErrorCode[] errorCodes = type.getEnumConstants();
 
-//                // GlobalExceptionCode의 에러코드 목록을 가져옵니다.
-//                BaseErrorCode[] globalErrorCodes = GlobalExceptionCode.class.getEnumConstants();
-//
-//                // 두 배열을 합쳐서 새로운 배열로 생성
-//                errorCodes = Stream.concat(Arrays.stream(errorCodes), Arrays.stream(globalErrorCodes)).toArray(BaseErrorCode[]::new);
+                // GlobalExceptionCode의 에러코드 목록을 가져옵니다.
+                BaseErrorCode[] globalErrorCodes = GlobalExceptionCode.class.getEnumConstants();
 
+                // 두 배열을 합쳐서 새로운 배열로 생성
+                errorCodes = Stream.concat(Arrays.stream(errorCodes), Arrays.stream(globalErrorCodes)).toArray(BaseErrorCode[]::new);
 
                 // 400, 401, 404 등 에러코드의 상태코드들로 리스트로 모읍니다.
                 // 400 같은 상태코드에 여러 에러코드들이 있을 수 있습니다.
@@ -109,14 +106,14 @@ public class SwaggerConfig {
                                 .map(
                                         baseErrorCode -> {
                                                 try {
-                                                        ErrorReason errorReason = baseErrorCode.getErrorReason();
+                                                        ErrorResponseDto errorResponseDto = baseErrorCode.getErrorReason();
                                                         return ExampleHolder.builder()
                                                                 .holder(
                                                                         getSwaggerExample(
                                                                                 baseErrorCode.getExplainError(),
-                                                                                errorReason))
-                                                                .status(errorReason.getCode().value())
-                                                                .name(errorReason.getStatus())
+                                                                                errorResponseDto))
+                                                                .status(errorResponseDto.getCode().value())
+                                                                .name(errorResponseDto.getStatus())
                                                                 .build();
                                                 } catch (NoSuchFieldException e) {
                                                         throw new RuntimeException(e);
@@ -128,9 +125,9 @@ public class SwaggerConfig {
         }
 
 
-        private Example getSwaggerExample(String value, ErrorReason errorReason) {
+        private Example getSwaggerExample(String value, ErrorResponseDto errorResponseDto) {
             //ErrorResponse 는 클라이언트한 실제 응답하는 공통 에러 응답 객체입니다.
-            ErrorResponse errorResponse = new ErrorResponse(errorReason);
+            ErrorResponse errorResponse = new ErrorResponse(errorResponseDto);
             Example example = new Example();
             example.description(value);
             example.setValue(errorResponse);

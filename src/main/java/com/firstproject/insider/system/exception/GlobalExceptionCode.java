@@ -1,7 +1,7 @@
 package com.firstproject.insider.system.exception;
 
 import com.firstproject.insider.common.annotation.ExplainDescription;
-import com.firstproject.insider.common.dto.ErrorReason;
+import com.firstproject.insider.common.dto.ErrorResponseDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
@@ -40,8 +40,8 @@ public enum GlobalExceptionCode implements BaseErrorCode {
     private String message;
 
     @Override
-    public ErrorReason getErrorReason() {
-        return ErrorReason.builder().code(code).status(status).message(message).build();
+    public ErrorResponseDto getErrorReason() {
+        return ErrorResponseDto.builder().code(code).status(status).message(message).build();
     }
 
     @Override

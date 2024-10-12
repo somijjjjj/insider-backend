@@ -1,24 +1,39 @@
 package com.firstproject.insider.user.service;
 
 import com.firstproject.insider.user.dto.UserDTO;
+import com.firstproject.insider.user.dto.request.UserLoginRequest;
 import com.firstproject.insider.user.dto.request.UserSingUpRequest;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface UserService {
 
 	/**
 	 * 회원가입 요청 처리
 	 */
-	void signUp(UserSingUpRequest requestBody) throws Exception;
-	
-	//로그인
-	UserDTO login(String id, String password) throws Exception ;
+    void signUp(UserSingUpRequest requestBody) throws Exception;
 
-	//유저 정보 조회
-	UserDTO getUserInfo(String userId) throws Exception;
+	/**
+	 * 사용자 아이디 중복 확인
+	 */
+	boolean isDuplicateUserId(String id) throws Exception;
 
-	//비밀번호 변경
-	void updatePassword(String id, String beforePassword, String afterPassword) throws Exception;
-	
-	//유저 삭제
-	void deleteId(String id, String password) throws Exception;
+	/**
+	 * 사용자 이메일 중복 확인
+	 */
+	boolean isDuplicateEmail(String email) throws Exception;
+
+	/**
+	 * 계정 로그인 요청
+	 */
+	String login(UserLoginRequest requestBody) throws Exception ;
+
+	/**
+	 * 계정 아이디 찾기 요청
+	 */
+	String findIdByEmail(String email) throws Exception ;
+
+	/**
+	 * 계정 비밀번호 찾기 요청
+	 */
+	boolean resetPassword(String userId, String email) throws Exception ;
 }

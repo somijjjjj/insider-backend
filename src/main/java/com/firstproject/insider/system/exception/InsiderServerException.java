@@ -1,6 +1,5 @@
 package com.firstproject.insider.system.exception;
 
-import com.firstproject.insider.common.dto.ErrorReason;
 import org.springframework.http.HttpStatus;
 
 import lombok.AllArgsConstructor;

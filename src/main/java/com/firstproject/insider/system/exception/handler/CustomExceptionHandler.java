@@ -1,26 +1,21 @@
 package com.firstproject.insider.system.exception.handler;
 
-import com.firstproject.insider.common.dto.ErrorReason;
-import com.firstproject.insider.common.dto.ErrorResponse;
-import com.firstproject.insider.system.exception.BaseErrorCode;
+import com.firstproject.insider.common.dto.ErrorResponseDto;
+import com.firstproject.insider.common.response.ErrorResponse;
 import com.firstproject.insider.system.exception.BusinessException;
 import com.firstproject.insider.system.exception.GlobalExceptionCode;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.firstproject.insider.common.CommonResponse;
 import com.firstproject.insider.system.exception.InsiderServerException;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
@@ -46,7 +41,7 @@ public class CustomExceptionHandler {
 				.status(globalExceptionCode.getCode())
 				.body(new ErrorResponse(
 						globalExceptionCode.getStatus(),
-						errorMessages.toString()));
+						String.join("\n", errorMessages)));
 	}
 
 	/**
@@ -109,7 +104,7 @@ public class CustomExceptionHandler {
 	 */
 	@ExceptionHandler( {BusinessException.class} )
 	public ResponseEntity<ErrorResponse> handleRuntimeException(BusinessException e){
-		ErrorReason errorCode = e.getErrorCode().getErrorReason();
+		ErrorResponseDto errorCode = e.getErrorCode().getErrorReason();
 
 		ErrorResponse errorResponse = new ErrorResponse(errorCode.getStatus(), errorCode.getMessage());
 

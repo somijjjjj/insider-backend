@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @Builder
-public class ErrorReason {
+public class ErrorResponseDto {
     private final HttpStatus code;
     private final String status;
     private final String message;

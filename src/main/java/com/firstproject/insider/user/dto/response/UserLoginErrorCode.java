@@ -1,7 +1,7 @@
 package com.firstproject.insider.user.dto.response;
 
 import com.firstproject.insider.common.annotation.ExplainDescription;
-import com.firstproject.insider.common.dto.ErrorReason;
+import com.firstproject.insider.common.dto.ErrorResponseDto;
 import com.firstproject.insider.system.exception.BaseErrorCode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,8 +14,8 @@ import java.util.Objects;
 @AllArgsConstructor
 public enum UserLoginErrorCode implements BaseErrorCode {
 
-    @ExplainDescription("이미 존재하는 아이디인 경우 발생하는 오류")
-    USER_ID_DUPLICATION(HttpStatus.BAD_REQUEST, "USER_ID_DUPLICATION", "동일한 아이디가 존재 합니다."),
+    @ExplainDescription("아이디 또는 경우 발생하는 오류")
+    LOGIN_NOT_EXIST(HttpStatus.BAD_REQUEST, "USER_ID_DUPLICATION", "동일한 아이디가 존재 합니다."),
 
     @ExplainDescription("이미 해당 정보로 회원가입한 유저일시 발생하는 오류")
     USER_ALREADY_SIGNUP(HttpStatus.BAD_REQUEST,"USER_ALREADY_SIGNUP", "이미 회원가입한 유저입니다."),
@@ -32,13 +32,13 @@ public enum UserLoginErrorCode implements BaseErrorCode {
     @ExplainDescription("null값이 들어온 경우 발생 ")
     PARAMETER_EMPTY(HttpStatus.BAD_REQUEST, "PARAMETER_EMPTY", "파라미터 중 빈 값이 존재합니다.");
 
-    private HttpStatus code;
-    private String status;
-    private String message;
+    private final HttpStatus code;
+    private final String status;
+    private final String message;
 
     @Override
-    public ErrorReason getErrorReason() {
-        return ErrorReason.builder().code(code).status(status).message(message).build();
+    public ErrorResponseDto getErrorReason() {
+        return ErrorResponseDto.builder().code(code).status(status).message(message).build();
     }
 
     @Override

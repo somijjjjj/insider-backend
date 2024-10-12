@@ -30,7 +30,7 @@ public class RedisConfig {
 	@Value("${spring.data.redis.password}")
 	private String redisPwd;
 	
-	@Value("${expire.defaultTime}")
+	@Value("${redis.expirationTime}")
 	private Long defaultTime;
 	
 	@Bean
@@ -47,8 +47,7 @@ public class RedisConfig {
 		redisStandaloneConfiguration.setPort(redisPort);
 		redisStandaloneConfiguration.setHostName(redisHost);
 		redisStandaloneConfiguration.setPassword(redisPwd);
-		LettuceConnectionFactory lettuceConnectionFactory = new LettuceConnectionFactory(redisStandaloneConfiguration);
-		return lettuceConnectionFactory;
+        return new LettuceConnectionFactory(redisStandaloneConfiguration);
 	}
 	
 	@Bean
@@ -56,7 +55,7 @@ public class RedisConfig {
 											   ObjectMapper objectMapper) {
 		RedisCacheConfiguration configuration = RedisCacheConfiguration.defaultCacheConfig()
 				.disableCachingNullValues()
-				.entryTtl(Duration.ofSeconds(defaultTime)) //서버요청 만료시간
+				.entryTtl(Duration.ofSeconds(defaultTime)) //서버요청 만료시간 10분
 				.serializeKeysWith(RedisSerializationContext
 						.SerializationPair
 						.fromSerializer(new StringRedisSerializer()))

@@ -1,9 +1,12 @@
 package com.firstproject.insider.user.mapper;
 
 import com.firstproject.insider.user.dto.UserDTO;
+import com.firstproject.insider.user.dto.request.UserLoginRequest;
 import com.firstproject.insider.user.dto.request.UserSingUpRequest;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.Map;
 
 @Mapper
 public interface UserMapper {
@@ -28,21 +31,25 @@ public interface UserMapper {
 	 */
 	int checkEmail(@Param("email") String email);
 
-	
-	UserDTO getUserProfile(@Param("id") String id);
-	
-	//유저 탈퇴
-	int deleteUserProfile(@Param("id") String id);
-	
-	//로그인 시 id, password 값 조회
-	UserDTO findByIdAndPassword(@Param("id") String id,
-									   @Param("password") String password);
+	/**
+	 * 로그인 정보 조회
+	 */
+	String selectLoginInfo(@Param("userId") String id);
 
-	//비밀번호 변경
-    int updatePassword(UserDTO loginDTO);
+	/**
+	 * 계정 아이디 조회
+	 */
+	String selectUserIdByEmail(@Param("email") String email);
 
-    //주소 변경
-    int updateAddress(UserDTO loginDTO);
-	
+	/**
+	 * 계정 이메일 조회
+	 */
+	String selectEmailByUserId(@Param("userId") String id);
+
+	/**
+	 * 비밀번호 업데이트
+	 */
+	String updateUserPassword(@Param("userId") String id, @Param("encodedPassword") String encodedPassword);
+
 
 }
