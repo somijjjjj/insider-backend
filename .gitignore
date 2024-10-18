@@ -4,6 +4,7 @@
 #프로젝트 프로퍼티 파일 제외
 application.properties
 
+
 ### Git ###
 # Created by git for backups. To disable backups in Git:
 # $ git config --global mergetool.keepBackup false
@@ -138,6 +139,7 @@ fabric.properties
 
 # Log file
 *.log
+*.log.gz
 
 # BlueJ files
 *.ctxt
